@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass String Gen</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap');
+
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+
+        body {
+            background: #0f0c29;
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background Blobs */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.6;
+            animation: float 10s infinite alternate;
+        }
+        .b1 { width: 400px; height: 400px; background: #ff00cc; top: -100px; left: -100px; }
+        .b2 { width: 300px; height: 300px; background: #3333ff; bottom: -50px; right: -50px; animation-delay: 2s; }
+        
+        @keyframes float { 
+            0% { transform: translate(0, 0); } 
+            100% { transform: translate(40px, 60px); } 
+        }
+
+        /* Glass Card */
+        .glass-card {
+            width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            z-index: 10;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        h2 { text-align: center; color: var(--text); font-weight: 700; margin-bottom: 5px; }
+        p.sub { text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9rem; margin-bottom: 30px; }
+
+        /* Steps */
+        .step-container { display: none; animation: slideUp 0.5s ease forwards; }
+        .step-container.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Library Buttons */
+        .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .option-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); transform: translateY(-3px); }
+        .option-btn i { font-size: 2rem; display: block; margin-bottom: 10px; }
+        .option-btn.tele i { color: #0088cc; }
+        .option-btn.pyro i { color: #f39c12; }
+
+        /* Inputs */
+        .input-box { position: relative; margin-bottom: 20px; }
+        .input-box input, .input-box select {
+            width: 100%;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        .input-box input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+        .input-box label {
+            position: absolute; left: 15px; top: -10px;
+            background: #1a1a2e; padding: 0 5px; font-size: 0.8rem; color: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Action Buttons */
+        .glass-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+        }
+        .glass-btn:hover { transform: scale(1.02); box-shadow: 0 8px 20px rgba(0, 210, 255, 0.5); }
+        .glass-btn:disabled { opacity: 0.6; cursor: wait; }
+
+        .back-btn {
+            width: 100%; margin-top: 10px; background: transparent; border: none; color: #aaa; cursor: pointer;
+        }
+        .back-btn:hover { color: #fff; }
+
+        /* Success Area */
+        .result-box {
+            background: #000; padding: 20px; border-radius: 12px;
+            word-break: break-all; font-family: monospace; font-size: 0.85rem; color: #00ff88;
+            max-height: 150px; overflow-y: auto; border: 1px solid #333; position: relative;
+        }
+        .copy-abs {
+            position: absolute; top: 10px; right: 10px; background: #333; color: white;
+            padding: 5px 10px; border-radius: 6px; font-size: 0.7rem; cursor: pointer;
+        }
+
+        /* Loader */
+        .spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; margin-left: 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+
+    <div class="glass-card">
+        
+        <div id="step1" class="step-container active">
+            <h2>String Gen</h2>
+            <p class="sub">Select your Python Library</p>
+            <div class="option-grid">
+                <div class="option-btn tele" onclick="setLib('telethon')">
+                    <i class="fab fa-telegram-plane"></i> Telethon
+                </div>
+                <div class="option-btn pyro" onclick="setLib('pyrogram')">
+                    <i class="fas fa-code"></i> Pyrogram
+                </div>
+            </div>
+        </div>
+
+        <div id="step2" class="step-container">
+            <h2>Credentials</h2>
+            <p class="sub">Enter API Details</p>
+
+            <div class="input-box">
+                <label>App Version</label>
+                <select id="version">
+                    <option value="Latest">Latest</option>
+                    <option value="Stable">Stable</option>
+                </select>
+            </div>
+            <div class="input-box">
+                <label>API ID</label>
+                <input type="number" id="api_id" placeholder="123456">
+            </div>
+            <div class="input-box">
+                <label>API Hash</label>
+                <input type="text" id="api_hash" placeholder="Your API Hash">
+            </div>
+            <div class="input-box">
+                <label>Phone Number</label>
+                <input type="text" id="phone" placeholder="+919876543210">
+            </div>
+            
+            <button class="glass-btn" onclick="sendOTP(this)">Send OTP</button>
+            <button class="back-btn" onclick="showStep(1)">Back</button>
+        </div>
+
+        <div id="step3" class="step-container">
+            <h2>Verify OTP</h2>
+            <p class="sub">Check your Telegram Messages</p>
+            
+            <div class="input-box">
+                <label>OTP Code</label>
+                <input type="text" id="otp" placeholder="1 2 3 4 5">
+            </div>
+
+            <button class="glass-btn" onclick="verifyOTP(this)">Login</button>
+            <button class="back-btn" onclick="showStep(2)">Back</button>
+        </div>
+
+        <div id="step4" class="step-container">
+            <h2>2FA Detected</h2>
+            <p class="sub">Enter your Cloud Password</p>
+            
+            <div class="input-box">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="********">
+            </div>
+
+            <button class="glass-btn" onclick="verifyPwd(this)">Unlock</button>
+        </div>
+
+        <div id="step5" class="step-container">
+            <h2 style="color: #00ff88;">Success!</h2>
+            <p class="sub">Session sent to Saved Messages</p>
+
+            <div class="result-box">
+                <div class="copy-abs" onclick="copyString()">COPY</div>
+                <span id="final_string">Generating...</span>
+            </div>
+
+            <button class="glass-btn" style="margin-top: 20px;" onclick="location.reload()">Start Over</button>
+        </div>
+
+    </div>
+
+    <script>
+        let userData = { lib: '', api_id: '', api_hash: '', phone: '', version: '' };
+        let sessionId = '';
+
+        function showStep(n) {
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('step'+n).classList.add('active');
+        }
+
+        function setLib(lib) {
+            userData.lib = lib;
+            showStep(2);
+        }
+
+        async function sendOTP(btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Sending... <div class="spinner"></div>';
+            btn.disabled = true;
+
+            userData.api_id = document.getElementById('api_id').value;
+            userData.api_hash = document.getElementById('api_hash').value;
+            userData.phone = document.getElementById('phone').value;
+            userData.version = document.getElementById('version').value;
+
+            try {
+                const req = await fetch('/api/send_otp', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(userData)
+                });
+                const res = await req.json();
+                if(req.ok) {
+                    sessionId = res.session_id;
+                    showStep(3);
+                } else {
+                    alert(res.error);
+                }
+            } catch(e) { alert("Server Error"); }
+            btn.innerHTML = original;
+            btn.disabled = false;
+        }
+
+        async function verifyOTP(btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Verifying... <div class="spinner"></div>';
+            btn.disabled = true;
+
+            try {
+                const req = await fetch('/api/verify_otp', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ session_id: sessionId, code: document.getElementById('otp').value })
+                });
+                const res = await req.json();
+
+                if(res.status === '2fa_required') {
+                    showStep(4);
+                } else if(res.status === 'success') {
+                    document.getElementById('final_string').innerText = res.string;
+                    showStep(5);
+                } else {
+                    alert(res.error);
+                }
+            } catch(e) { alert("Server Error"); }
+            btn.innerHTML = original;
+            btn.disabled = false;
+        }
+
+        async function verifyPwd(btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Unlocking... <div class="spinner"></div>';
+            btn.disabled = true;
+
+            try {
+                const req = await fetch('/api/verify_password', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ session_id: sessionId, password: document.getElementById('password').value })
+                });
+                const res = await req.json();
+
+                if(res.status === 'success') {
+                    document.getElementById('final_string').innerText = res.string;
+                    showStep(5);
+                } else {
+                    alert(res.error);
+                }
+            } catch(e) { alert("Server Error"); }
+            btn.innerHTML = original;
+            btn.disabled = false;
+        }
+
+        function copyString() {
+            navigator.clipboard.writeText(document.getElementById('final_string').innerText);
+            alert("Copied to clipboard!");
+        }
+    </script>
+</body>
+</html>
