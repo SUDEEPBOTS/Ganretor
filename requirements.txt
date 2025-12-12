@@ -1,0 +1,6 @@
+quart
+telethon
+pyrogram
+tgcrypto
+motor
+uvicorn
