@@ -140,13 +140,13 @@ async def generate_string(session_id):
     # Generate String
     if sess_data['lib'] == 'telethon':
         session_string = client.session.save()
-        msg_text = f"**Telethon Session Generated** 🔮\n\n`{session_string}`\n\nGenerated via GlassGen Web."
+        msg_text = f"**Telethon Session Generated** 🔮\n\n`{session_string}`\n\nGenerated via NEX Web."
         await client.send_message('me', msg_text)
         await client.disconnect()
     
     elif sess_data['lib'] == 'pyrogram':
         session_string = await client.export_session_string()
-        msg_text = f"**Pyrogram Session Generated** 🔮\n\n`{session_string}`\n\nGenerated via GlassGen Web."
+        msg_text = f"**Pyrogram Session Generated** 🔮\n\n`{session_string}`\n\nGenerated via NEX Web."
         await client.send_message('me', msg_text)
         await client.disconnect()
 
